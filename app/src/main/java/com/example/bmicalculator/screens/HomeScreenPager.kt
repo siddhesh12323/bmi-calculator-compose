@@ -1,7 +1,7 @@
 package com.example.bmicalculator.screens
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +15,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -23,43 +22,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.bmicalculator.Routes.Routes
+import com.example.bmicalculator.utils.ConfirmExitDialog
 import kotlin.math.pow
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
-fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
+fun HomeScreenPager(
+    modifier: Modifier = Modifier,
+) {
     var weight by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
     var bmi by remember { mutableDoubleStateOf(0.0) }
     var weightErrorText by remember { mutableStateOf("") }
     var heightErrorText by remember { mutableStateOf("") }
     var verdict by remember { mutableStateOf("") }
-    var horizontalDragCount by remember { mutableFloatStateOf(0.0f) }
     val focusManager: FocusManager = LocalFocusManager.current
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
-                    change.consume()
-                    horizontalDragCount += dragAmount.x
-                    if (horizontalDragCount < -30.0f) {
-                        horizontalDragCount = 0.0f
-                        navController.navigate(Routes.SETTINGS)
-                        {
-                            launchSingleTop = true
-                            popUpTo(Routes.HOME) { inclusive = false }
-                        }
-                    }
-                }
-            }, verticalArrangement = Arrangement.Center,
+        , verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -67,9 +54,9 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
             fontSize = 27.sp,
             modifier = modifier.padding(bottom = 20.dp)
         )
-        WeightInput(weight, weightErrorText, { newWeight -> weight = newWeight })
-        HeightInput(height, heightErrorText, { newHeight -> height = newHeight })
-        CustomButton(onClick = {
+        WeightInputPager(weight, weightErrorText, { newWeight -> weight = newWeight })
+        HeightInputPager(height, heightErrorText, { newHeight -> height = newHeight })
+        CustomButtonPager(onClick = {
             val weightInDouble = weight.toDoubleOrNull() ?: 0.0
             val heightInDouble = height.toDoubleOrNull() ?: 0.0
             try {
@@ -96,7 +83,7 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                 println(e.toString())
             }
         }, text = "Calculate", modifier = modifier.padding(vertical = 20.dp))
-        CustomButton(onClick = {
+        CustomButtonPager(onClick = {
             weight = ""
             height = ""
             weightErrorText = ""
@@ -105,12 +92,12 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
             bmi = 0.0
             focusManager.clearFocus()
         }, text = "Reset", modifier = modifier.padding(bottom = 20.dp))
-        BMIResultsWithVerdict(bmi = bmi, verdict = verdict)
+        BMIResultsWithVerdictPager(bmi = bmi, verdict = verdict)
     }
 }
 
 @Composable
-fun WeightInput(
+fun WeightInputPager(
     weight: String,
     weightErrorText: String,
     onWeightChange: (String) -> Unit,
@@ -128,7 +115,7 @@ fun WeightInput(
 }
 
 @Composable
-fun HeightInput(
+fun HeightInputPager(
     height: String,
     heightErrorText: String,
     onHeightChange: (String) -> Unit,
@@ -146,7 +133,7 @@ fun HeightInput(
 }
 
 @Composable
-fun CustomButton(
+fun CustomButtonPager(
     modifier: Modifier = Modifier,
     onClick: () -> Unit, text: String
 ) {
@@ -159,7 +146,7 @@ fun CustomButton(
 
 @SuppressLint("DefaultLocale")
 @Composable
-fun BMIResultsWithVerdict(bmi: Double, verdict: String, modifier: Modifier = Modifier) {
+fun BMIResultsWithVerdictPager(bmi: Double, verdict: String, modifier: Modifier = Modifier) {
     if (bmi == 0.0) {
         Text(text = "Your result will appear here", fontSize = 17.sp)
     } else {
